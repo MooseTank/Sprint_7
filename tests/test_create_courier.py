@@ -1,23 +1,25 @@
-import requests
 import allure
 import pytest
 from data import Data
-from urls import Urls
+from courier_api import CourierAPI
 from helpers import create_random_login, create_random_password, create_random_firstname
 
 
+@allure.title("Создание курьера")
 class TestCourierCreate:
-
-    @allure.title('Проверка успешного создания аккаунта курьера с валидными данными')
-    @allure.description('Проверяются код и тело ответа.')
-    def test_create_courier_account_success(self):
+    @allure.description("Успешное создание курьера")
+    def test_create_courier_success(self, delete_courier):
         payload = {
-            'login': create_random_login(),
-            'password': create_random_password(),
-            'firstName': create_random_firstname()
+            "login": create_random_login(),
+            "password": create_random_password(),
+            "firstName": create_random_firstname()
         }
-        response = requests.post(Urls.URL_COURIER_CREATE, data=payload)
-        assert response.status_code == 201 and response.json() == Data.created_valid_courier
+        courier_api = CourierAPI()
+        response = courier_api.create_courier(payload)
+        assert response.status_code == 201
+        assert response.json() == {"ok": True}
+
+        delete_courier(payload["login"], payload["password"])
 
     @allure.title('Проверка получения ошибки при повторном использовании логина для создания курьера')
     @allure.description('Проверяются код и тело ответа.')
@@ -27,7 +29,8 @@ class TestCourierCreate:
             'password': create_random_password(),
             'firstName': create_random_firstname()
         }
-        response = requests.post(Urls.URL_COURIER_CREATE, data=payload)
+        courier_api = CourierAPI()
+        response = courier_api.create_courier(payload)
         assert response.status_code == 409 and response.json() == Data.courier_with_repeating_login
 
     @allure.title('Проверка получения ошибки при создании курьера с незаполненными обязательными полями')
@@ -38,5 +41,6 @@ class TestCourierCreate:
         {'login': create_random_login(), 'password': '', 'firstName': create_random_firstname()}
     ])
     def test_create_courier_account_with_empty_required_fields(self, empty_credentials):
-        response = requests.post(Urls.URL_COURIER_CREATE, data=empty_credentials)
+        courier_api = CourierAPI()
+        response = courier_api.create_courier(empty_credentials)
         assert response.status_code == 400 and response.json() == Data.not_enough_data_to_login
