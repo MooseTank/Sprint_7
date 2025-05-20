@@ -16,6 +16,7 @@ class TestCourierCreate:
         }
         courier_api = CourierAPI()
         response = courier_api.create_courier(payload)
+
         assert response.status_code == 201
         assert response.json() == {"ok": True}
 
