@@ -8,7 +8,7 @@ from helpers import create_random_login, create_random_password, create_random_f
 @allure.title("Создание курьера")
 class TestCourierCreate:
     @allure.description("Успешное создание курьера")
-    def test_create_courier_success(self, delete_courier):
+    def test_create_courier_success(self):
         payload = {
             "login": create_random_login(),
             "password": create_random_password(),
@@ -19,8 +19,6 @@ class TestCourierCreate:
 
         assert response.status_code == 201
         assert response.json() == {"ok": True}
-
-        delete_courier(payload["login"], payload["password"])
 
     @allure.title('Проверка получения ошибки при повторном использовании логина для создания курьера')
     @allure.description('Проверяются код и тело ответа.')

@@ -5,22 +5,24 @@ from urls import Urls
 
 @pytest.fixture
 def delete_courier():
-    login = None
-    password = None
+    created_login = None
+    created_password = None
 
-    def _delete_courier(login_, password_):
-        nonlocal login, password
-        login = login_
-        password = password_
+    yield  # yield без передачи функции
 
-    yield _delete_courier
-
-    if login and password:
+    if created_login and created_password:
         login_response = requests.post(Urls.URL_COURIER_LOGIN, data={
-            "login": login,
-            "password": password
+            "login": created_login,
+            "password": created_password
         })
 
         if login_response.status_code == 200 and "id" in login_response.json():
             courier_id = login_response.json()["id"]
             requests.delete(f"{Urls.URL_ORDERS_CREATE}/{courier_id}")
+
+    def set_credentials(login_, password_):
+        nonlocal created_login, created_password
+        created_login = login_
+        created_password = password_
+
+    return set_credentials
