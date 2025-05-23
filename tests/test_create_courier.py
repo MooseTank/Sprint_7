@@ -8,15 +8,11 @@ from helpers import create_random_login, create_random_password, create_random_f
 @allure.title("Создание курьера")
 class TestCourierCreate:
     @allure.description("Успешное создание курьера")
-    def test_create_courier_success(self):
-        payload = {
-            "login": create_random_login(),
-            "password": create_random_password(),
-            "firstName": create_random_firstname()
-        }
-        courier_api = CourierAPI()
-        response = courier_api.create_courier(payload)
+    def test_create_courier_success(self, create_courier):
+        # Получаем ответ от фикстуры
+        response = create_courier
 
+        # Проверяем статус создания
         assert response.status_code == 201
         assert response.json() == {"ok": True}
 

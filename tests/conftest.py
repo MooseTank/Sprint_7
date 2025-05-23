@@ -1,28 +1,36 @@
 import pytest
 import requests
+from helpers import create_random_login, create_random_password, create_random_firstname
+from courier_api import CourierAPI
 from urls import Urls
 
 
 @pytest.fixture
-def delete_courier():
-    created_login = None
-    created_password = None
+def create_courier():
+    # Создаем тестовые данные
+    payload = {
+        "login": create_random_login(),
+        "password": create_random_password(),
+        "firstName": create_random_firstname()
+    }
 
-    yield  # yield без передачи функции
+    # Создаем курьера
+    courier_api = CourierAPI()
+    response = courier_api.create_courier(payload)
 
-    if created_login and created_password:
-        login_response = requests.post(Urls.URL_COURIER_LOGIN, data={
-            "login": created_login,
-            "password": created_password
-        })
+    # Сохраняем данные для последующего удаления
+    created_login = payload["login"]
+    created_password = payload["password"]
 
-        if login_response.status_code == 200 and "id" in login_response.json():
-            courier_id = login_response.json()["id"]
-            requests.delete(f"{Urls.URL_ORDERS_CREATE}/{courier_id}")
+    # Возвращаем данные для использования в тесте
+    yield response
 
-    def set_credentials(login_, password_):
-        nonlocal created_login, created_password
-        created_login = login_
-        created_password = password_
+    # Удаляем курьера после теста
+    login_response = requests.post(Urls.URL_COURIER_LOGIN, data={
+        "login": created_login,
+        "password": created_password
+    })
 
-    return set_credentials
+    if login_response.status_code == 200 and "id" in login_response.json():
+        courier_id = login_response.json()["id"]
+        requests.delete(f"{Urls.URL_ORDERS_CREATE}/{courier_id}")
